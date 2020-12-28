@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TownAnimation:jar">
+    <output-path>$USER_HOME$/Documents/CODE/Minecraft Servers/dev server/plugins</output-path>
+    <root id="archive" name="TownAnimation.jar">
+      <element id="module-output" name="TownAnimation" />
+    </root>
+  </artifact>
+</component>
