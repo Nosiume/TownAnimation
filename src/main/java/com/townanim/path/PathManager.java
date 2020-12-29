@@ -1,11 +1,19 @@
 package com.townanim.path;
 
 import com.townanim.Constants;
+import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.Vector;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -22,6 +30,7 @@ public class PathManager {
     public static List<Path> paths = new ArrayList<Path>();
     public static Map<Player, Path> editing = new HashMap<Player, Path>();
     public static Map<Player, ItemStack[]> editingInvSave = new HashMap<Player, ItemStack[]>();
+    public static Map<Player, List<ArmorStand>> pointMarkers = new HashMap<Player, List<ArmorStand>>();
 
     //Editing Items
     public static ItemStack ADD_POINT_ITEM = new ItemStack(Material.EMERALD, 1);
@@ -66,6 +75,8 @@ public class PathManager {
     public static void enterEditingMode(Player p) {
         p.sendMessage("§9 - Entering path editing mode.");
 
+        pointMarkers.put(p, new ArrayList<ArmorStand>());
+
         PlayerInventory inv = p.getInventory();
         editingInvSave.put(p, inv.getContents());
         inv.clear(); //if doesn't work try p.getInventory().clear()
@@ -88,8 +99,33 @@ public class PathManager {
         ItemStack[] invSave = editingInvSave.get(p);
         p.getInventory().setContents(invSave);
         editingInvSave.remove(p);
+
+        clearMarkers(p);
+        pointMarkers.remove(p);
     }
 
+    //Adds a marker to the player's view
+    public static void addMarker(Player p, Vector point, int count) {
+        World w = p.getWorld();
+        ArmorStand stand = (ArmorStand) w.spawnEntity(new Location(w, point.getX() + 0.5, point.getY(), point.getZ() + 0.5), EntityType.ARMOR_STAND);
+
+        stand.setCustomName("§aPoint §9" + count);
+        stand.setCustomNameVisible(true);
+        stand.setGravity(false);
+        stand.setMarker(true);
+        stand.setInvisible(true);
+
+        pointMarkers.get(p).add(stand);
+    }
+
+    //Clear all markers
+    public static void clearMarkers(Player p) {
+        //Remove the player's markers
+        for(ArmorStand a : pointMarkers.get(p)) {
+            a.remove();
+        }
+        pointMarkers.get(p).clear();
+    }
 
     //============ DATA SAVING ============ //
 

@@ -10,6 +10,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+
 public class PathListener implements Listener {
 
     // IMPORTANT : those events should only run if check() function returns TRUE for Player
@@ -28,9 +30,12 @@ public class PathListener implements Listener {
             ItemStack it = event.getItem();
             Action action = event.getAction();
 
+            if(it == null)
+                return;
+
             if(action == Action.RIGHT_CLICK_BLOCK) {
                 if(it.isSimilar(PathManager.ADD_POINT_ITEM)) {
-                    //Gets the location above the clicked block
+                    // Gets the location above the clicked block
                     Location l = event.getClickedBlock().getLocation().add(0, 1, 0);
                     Vector point = new Vector(l.getX(), l.getY(), l.getZ());
                     Path path = PathManager.editing.get(p);
@@ -41,6 +46,7 @@ public class PathListener implements Listener {
                     }
                     path.addPoint(point);
                     p.sendMessage("§aPosition §7(" + point.getX() + " " + point.getY() + " " + point.getZ() + ") §a was successfully added to path points.");
+                    PathManager.addMarker(p, point, PathManager.pointMarkers.get(p).size() + 1);
                 } else if (it.isSimilar(PathManager.REMOVE_POINT_ITEM)) {
                     //Gets the location above the clicked block
                     Location l = event.getClickedBlock().getLocation().add(0, 1, 0);
@@ -52,6 +58,13 @@ public class PathListener implements Listener {
                         return;
                     }
                     path.removePoint(point);
+
+                    //We have to recreate all markers to put them back in the right order
+                    PathManager.clearMarkers(p);
+                    List<Vector> points = path.getPoints();
+                    for(int i = 0 ; i < points.size() ; i++)
+                        PathManager.addMarker(p, points.get(i), i+1);
+
                     p.sendMessage("§aPosition §7(" + point.getX() + " " + point.getY() + " " + point.getZ() + ") §a was successfully removed from path points.");
                 }
             }
